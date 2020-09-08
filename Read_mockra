@@ -1,0 +1,35 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep  4 14:28:26 2020
+
+@author: hugosouza
+"""
+
+import pandas as pd
+import m_ockra
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import roc_auc_score
+
+#read csv file
+dataset = pd.read_csv('bupa.csv', header=None)
+
+rows, columns = dataset.shape
+
+X = dataset.iloc[:, :columns-1]
+y = dataset.values[:, -1]
+
+#shape train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=0)
+
+#train m-OCKRA
+print('Training classifier...')
+clf = m_ockra.m_OCKRA()
+clf.fit(X_train, y_train)
+
+print('Classifier trained!')
+print('Testing classifier...')
+
+y_pred = clf.score_samples(X_test)
+auc = roc_auc_score(y_test,  y_pred)
+print(f'Testing AUC: {auc if auc > .5 else 1 - auc}')
