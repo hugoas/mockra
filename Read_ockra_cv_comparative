@@ -1,0 +1,94 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Sep  4 14:28:26 2020
+
+@author: hugosouza
+"""
+
+import pandas as pd
+import m_ockra
+#import ockra
+from sklearn import svm
+from sklearn.svm import OneClassSVM
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.model_selection import train_test_split, cross_val_score
+#from sklearn.metrics import roc_auc_score
+
+#read csv file
+dataset = pd.read_csv('/home/hugosouza/Downloads/bupa.csv', header=None)
+
+rows, columns = dataset.shape
+
+X = dataset.iloc[:, :columns-1]
+y = dataset.values[:, -1]
+
+#shape train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=0)
+
+#train m-OCKRA
+print('Training classifier...')
+clf = m_ockra.m_OCKRA()
+clf.fit(X_train, y_train)
+#train SVM
+clf2 = svm.SVC(kernel="linear", C = 1, random_state=0)
+clf2.fit(X_train, y_train)
+#train One Class SVM
+clf3 = OneClassSVM(gamma='auto')
+clf3.fit(X_train, y_train)
+#train OCKRA
+#clf4 = ockra.OCKRA()
+#clf4.fit(X_train, y_train)
+#train Random Forrest
+clf5 = RandomForestClassifier(max_depth=2, random_state=0)
+clf5.fit(X_train, y_train)
+#train Adaboost
+clf6 = AdaBoostClassifier(n_estimators=100, random_state=0)
+clf6.fit(X_train, y_train)
+
+
+
+print('Classifier trained!')
+print('Testing classifier...')
+
+#cross validation configure
+scores = cross_val_score(clf, X_train, y_train, cv=10, scoring='f1_macro')
+#cross validation configure from clf2
+scores2 = cross_val_score(clf2, X_train, y_train, cv=10, scoring='f1_macro')
+#cross validation configure from clf3
+scores3 = cross_val_score(clf3, X_train, y_train, cv=10, scoring='f1_macro')
+#cross validation configure from clf4
+#scores4 = cross_val_score(clf4, X_train, y_train, cv=10, scoring='f1_macro')
+#cross validation configure from clf5
+scores5 = cross_val_score(clf5, X_train, y_train, cv=10, scoring='f1_macro')
+#cross validation configure from clf6
+scores6 = cross_val_score(clf6, X_train, y_train, cv=10, scoring='f1_macro')
+#print results
+print("m-OCKRA")
+print(scores)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
+
+print("SVM")
+print(scores2)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores2.mean(), scores2.std() * 2))
+
+print("One Class SVM")
+print(scores3)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores3.mean(), scores3.std() * 2))
+
+#print("OCKRA")
+#print(scores4)
+#print("Accuracy: %0.2f (+/- %0.2f)" % (scores4.mean(), scores4.std() * 2))
+
+print("Random Forrest")
+print(scores5)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores5.mean(), scores5.std() * 2))
+
+print("Adaboost")
+print(scores6)
+print("Accuracy: %0.2f (+/- %0.2f)" % (scores6.mean(), scores6.std() * 2))
+
+#y_pred = clf.score_samples(X_test)
+#auc = roc_auc_score(y_test,  y_pred)
+#print(f'Testing AUC: {auc if auc > .5 else 1 - auc}')
